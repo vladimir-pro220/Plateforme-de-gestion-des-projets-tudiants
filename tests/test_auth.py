@@ -30,7 +30,7 @@ class TestRegister:
                 "email": "paul@test.com",
                 "role": "student",
                 "password": "password123",
-                "password2": "password123",
+                "confirm_password": "password123",
             },
             follow_redirects=True,
         )
@@ -51,13 +51,12 @@ class TestRegister:
                 "email": student_user.email,
                 "role": "student",
                 "password": "password123",
-                "password2": "password123",
+                "confirm_password": "password123",
             },
             follow_redirects=True,
         )
 
         assert response.status_code == 200
-        # Deux utilisateurs avec le même email ne doivent pas exister
         count = User.query.filter_by(email=student_user.email).count()
         assert count == 1
 
@@ -71,7 +70,7 @@ class TestRegister:
                 "email": "mismatch@test.com",
                 "role": "student",
                 "password": "password123",
-                "password2": "different456",
+                "confirm_password": "different456",
             },
             follow_redirects=True,
         )
@@ -95,7 +94,6 @@ class TestRegister:
 
     def test_register_redirects_authenticated(self, client, db, student_user):
         """Un utilisateur déjà connecté est redirigé depuis /register."""
-        # Connexion
         client.post(
             "/auth/login",
             data={
@@ -204,7 +202,6 @@ class TestLogin:
             "utf-8"
         )
 
-        # Réactive pour ne pas affecter d'autres tests
         student_user.is_active = True
         db.session.commit()
 

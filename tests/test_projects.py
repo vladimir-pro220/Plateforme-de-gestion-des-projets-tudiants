@@ -50,12 +50,11 @@ class TestProjectList:
 
     def test_list_pagination(self, client, db, teacher_user):
         """La pagination fonctionne correctement."""
-        # Crée 12 projets pour déclencher la pagination (10/page)
         for i in range(12):
             p = Project(
                 title=f"Projet Pagination {i}",
                 description="Description de test.",
-                domain="Test",
+                domain="informatique",
                 max_students=1,
                 status="open",
                 teacher_id=teacher_user.id,
@@ -187,9 +186,10 @@ class TestProjectCreate:
             data={
                 "title": "Nouveau Projet Test",
                 "description": "Description complète du nouveau projet de test.",
-                "domain": "Informatique",
+                "domain": "informatique",
                 "max_students": "2",
                 "status": "open",
+                "submit": "True",
             },
             follow_redirects=True,
         )
@@ -294,9 +294,10 @@ class TestProjectEdit:
             data={
                 "title": "Projet Modifié",
                 "description": "Nouvelle description du projet modifié.",
-                "domain": "Data Science",
+                "domain": "data",
                 "max_students": "3",
                 "status": "open",
+                "submit": "True",
             },
             follow_redirects=True,
         )
@@ -304,7 +305,7 @@ class TestProjectEdit:
         assert response.status_code == 200
         updated = Project.query.get(sample_project.id)
         assert updated.title == "Projet Modifié"
-        assert updated.domain == "Data Science"
+        assert updated.domain == "data"
         client.get("/auth/logout", follow_redirects=True)
 
 
@@ -337,11 +338,10 @@ class TestProjectDelete:
 
     def test_delete_success_for_owner(self, client, db, teacher_user):
         """L'enseignant propriétaire peut supprimer son projet."""
-        # Crée un projet à supprimer
         project = Project(
             title="Projet à Supprimer",
             description="Ce projet sera supprimé.",
-            domain="Test",
+            domain="informatique",
             max_students=1,
             status="open",
             teacher_id=teacher_user.id,
@@ -366,3 +366,4 @@ class TestProjectDelete:
         assert response.status_code == 200
         assert Project.query.get(project_id) is None
         client.get("/auth/logout", follow_redirects=True)
+        
