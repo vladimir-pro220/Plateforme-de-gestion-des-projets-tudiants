@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Statistiques globales{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="page-header mb-4">
+        <h1 class="page-title"><i class="bi bi-bar-chart me-2"></i>Statistiques globales</h1>
+        <p class="text-muted">Vue d'ensemble de l'activité de la plateforme.</p>
+    </div>
+
+    <!-- Chiffres clés -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon bg-primary-soft">
+                    <i class="bi bi-people text-primary"></i>
+                </div>
+                <div class="dash-stat-num">{{ stats.total_users }}</div>
+                <div class="dash-stat-label">Utilisateurs</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon bg-warning-soft">
+                    <i class="bi bi-folder2 text-warning"></i>
+                </div>
+                <div class="dash-stat-num">{{ stats.total_projects }}</div>
+                <div class="dash-stat-label">Projets</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon bg-info-soft">
+                    <i class="bi bi-send text-info"></i>
+                </div>
+                <div class="dash-stat-num">{{ stats.total_applications }}</div>
+                <div class="dash-stat-label">Candidatures</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon bg-success-soft">
+                    <i class="bi bi-check-circle text-success"></i>
+                </div>
+                <div class="dash-stat-num">{{ stats.accepted_applications }}</div>
+                <div class="dash-stat-label">Acceptées</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Projets par domaine -->
+        <div class="col-md-6">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h5 class="mb-0">Projets par domaine</h5>
+                </div>
+                {% if projects_by_domain %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Domaine</th>
+                                <th class="text-end">Projets</th>
+                                <th class="text-end">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for domain, count in projects_by_domain %}
+                            <tr>
+                                <td>
+                                    <span class="badge domain-badge">{{ domain }}</span>
+                                </td>
+                                <td class="text-end fw-medium">{{ count }}</td>
+                                <td class="text-end text-muted small">
+                                    {% if stats.total_projects > 0 %}
+                                    {{ "%.0f"|format(count / stats.total_projects * 100) }}%
+                                    {% else %}0%{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">Aucune donnée.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Projets par statut -->
+        <div class="col-md-6">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h5 class="mb-0">Projets par statut</h5>
+                </div>
+                {% set status_labels = {'open': 'Ouvert', 'closed': 'Fermé', 'completed': 'Terminé'} %}
+                {% set status_colors = {'open': 'success', 'closed': 'danger', 'completed': 'secondary'} %}
+                {% if projects_by_status %}
+                <div class="p-3">
+                    {% for status, count in projects_by_status %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="badge bg-{{ status_colors.get(status, 'secondary') }}">
+                                {{ status_labels.get(status, status) }}
+                            </span>
+                            <span class="fw-medium">{{ count }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{{ status_colors.get(status, 'secondary') }}"
+                                 style="width: {% if stats.total_projects > 0 %}{{ (count / stats.total_projects * 100)|int }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">Aucune donnée.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Candidatures par statut -->
+        <div class="col-md-6">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h5 class="mb-0">Candidatures par statut</h5>
+                </div>
+                {% set app_labels = {'pending': 'En attente', 'accepted': 'Acceptées', 'rejected': 'Refusées'} %}
+                {% set app_colors = {'pending': 'warning', 'accepted': 'success', 'rejected': 'danger'} %}
+                {% if apps_by_status %}
+                <div class="p-3">
+                    {% for status, count in apps_by_status %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="badge bg-{{ app_colors.get(status, 'secondary') }}
+                                         {% if status == 'pending' %}text-dark{% endif %}">
+                                {{ app_labels.get(status, status) }}
+                            </span>
+                            <span class="fw-medium">{{ count }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{{ app_colors.get(status, 'secondary') }}"
+                                 style="width: {% if stats.total_applications > 0 %}{{ (count / stats.total_applications * 100)|int }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">Aucune donnée.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Répartition utilisateurs -->
+        <div class="col-md-6">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h5 class="mb-0">Répartition des utilisateurs</h5>
+                </div>
+                <div class="p-3">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="badge role-badge role-student">Étudiants</span>
+                            <span class="fw-medium">{{ stats.total_students }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary"
+                                 style="width: {% if stats.total_users > 0 %}{{ (stats.total_students / stats.total_users * 100)|int }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="badge role-badge role-teacher">Enseignants</span>
+                            <span class="fw-medium">{{ stats.total_teachers }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info"
+                                 style="width: {% if stats.total_users > 0 %}{{ (stats.total_teachers / stats.total_users * 100)|int }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

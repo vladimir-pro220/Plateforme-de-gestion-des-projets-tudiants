@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<div class="row align-items-center py-5 mb-4 hero-section rounded-3">
+    <div class="col-lg-7">
+        <h1 class="display-5 fw-bold mb-3">
+            Plateforme de Gestion de Projets Étudiants
+        </h1>
+        <p class="lead text-muted mb-4">
+            Connectez enseignants et étudiants autour de projets académiques.
+            Publiez des sujets, postulez, collaborez.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus me-2"></i>Rejoindre la plateforme
+            </a>
+            <a href="{{ url_for('projects.list') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-folder2-open me-2"></i>Voir les projets
+            </a>
+            {% else %}
+            <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-speedometer2 me-2"></i>Mon tableau de bord
+            </a>
+            <a href="{{ url_for('projects.list') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-folder2-open me-2"></i>Tous les projets
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+        <i class="bi bi-mortarboard-fill text-primary" style="font-size: 10rem; opacity: 0.15;"></i>
+    </div>
+</div>
+
+<!-- ===== STATISTIQUES GLOBALES ===== -->
+<div class="row g-3 mb-5">
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-folder2-open text-primary mb-2" style="font-size: 2rem;"></i>
+                <h2 class="fw-bold text-primary mb-0">{{ stats.total_projects }}</h2>
+                <p class="text-muted small mb-0">Projets publiés</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-unlock text-success mb-2" style="font-size: 2rem;"></i>
+                <h2 class="fw-bold text-success mb-0">{{ stats.open_projects }}</h2>
+                <p class="text-muted small mb-0">Projets ouverts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-people text-warning mb-2" style="font-size: 2rem;"></i>
+                <h2 class="fw-bold text-warning mb-0">{{ stats.total_students }}</h2>
+                <p class="text-muted small mb-0">Étudiants inscrits</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-file-earmark-text text-info mb-2" style="font-size: 2rem;"></i>
+                <h2 class="fw-bold text-info mb-0">{{ stats.total_applications }}</h2>
+                <p class="text-muted small mb-0">Candidatures</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PROJETS RÉCENTS ===== -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 fw-bold mb-0">
+        <i class="bi bi-clock-history me-2 text-primary"></i>Projets récents
+    </h2>
+    <a href="{{ url_for('projects.list') }}" class="btn btn-outline-primary btn-sm">
+        Voir tous <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+</div>
+
+{% if projects %}
+<div class="row g-3 mb-5">
+    {% for project in projects %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 project-card">
+            <div class="card-body d-flex flex-column">
+
+                <!-- Statut + domaine -->
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge
+                        {% if project.status == 'open' %}bg-success
+                        {% elif project.status == 'closed' %}bg-secondary
+                        {% else %}bg-primary{% endif %}">
+                        {% if project.status == 'open' %}
+                            <i class="bi bi-unlock me-1"></i>Ouvert
+                        {% elif project.status == 'closed' %}
+                            <i class="bi bi-lock me-1"></i>Fermé
+                        {% else %}
+                            <i class="bi bi-check-circle me-1"></i>Terminé
+                        {% endif %}
+                    </span>
+                    {% if project.domain %}
+                    <span class="badge bg-light text-dark border">{{ project.domain }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Titre -->
+                <h5 class="card-title fw-bold">{{ project.title }}</h5>
+
+                <!-- Description tronquée -->
+                <p class="card-text text-muted small flex-grow-1">
+                    {{ project.description | truncate(120) }}
+                </p>
+
+                <!-- Infos bas de carte -->
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between text-muted small mb-2">
+                        <span>
+                            <i class="bi bi-person me-1"></i>{{ project.teacher.full_name }}
+                        </span>
+                        <span>
+                            <i class="bi bi-people me-1"></i>
+                            {{ project.applications_count }} / {{ project.max_students }}
+                        </span>
+                    </div>
+                    <a href="{{ url_for('projects.detail', project_id=project.id) }}"
+                       class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-eye me-1"></i>Voir le projet
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>Aucun projet disponible pour le moment.
+</div>
+{% endif %}
+
+<!-- ===== COMMENT ÇA MARCHE ===== -->
+<div class="bg-light rounded-3 p-4 mb-4">
+    <h2 class="h4 fw-bold text-center mb-4">
+        <i class="bi bi-question-circle me-2 text-primary"></i>Comment ça marche ?
+    </h2>
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="mb-3">
+                <span class="badge bg-primary rounded-circle p-3" style="font-size: 1.2rem;">1</span>
+            </div>
+            <h5 class="fw-bold">Inscrivez-vous</h5>
+            <p class="text-muted small">
+                Créez votre compte en tant qu'étudiant ou enseignant en quelques secondes.
+            </p>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <span class="badge bg-primary rounded-circle p-3" style="font-size: 1.2rem;">2</span>
+            </div>
+            <h5 class="fw-bold">Publiez ou explorez</h5>
+            <p class="text-muted small">
+                Les enseignants publient des sujets, les étudiants parcourent les projets disponibles.
+            </p>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <span class="badge bg-primary rounded-circle p-3" style="font-size: 1.2rem;">3</span>
+            </div>
+            <h5 class="fw-bold">Postulez & collaborez</h5>
+            <p class="text-muted small">
+                Les étudiants envoient leur candidature. Les enseignants acceptent ou refusent.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

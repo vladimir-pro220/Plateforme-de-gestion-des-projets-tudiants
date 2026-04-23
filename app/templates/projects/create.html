@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ===== FIL D'ARIANE ===== -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('dashboard.index') }}" class="text-decoration-none">
+                <i class="bi bi-house me-1"></i>Accueil
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('projects.list') }}" class="text-decoration-none">Projets</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Nouveau projet</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <!-- En-tête -->
+        <div class="d-flex align-items-center mb-4">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center
+                        justify-content-center me-3" style="width:48px; height:48px;">
+                <i class="bi bi-plus-lg fs-5"></i>
+            </div>
+            <div>
+                <h1 class="h3 fw-bold mb-0">Créer un nouveau projet</h1>
+                <p class="text-muted mb-0 small">Remplissez les informations ci-dessous pour publier votre sujet.</p>
+            </div>
+        </div>
+
+        <!-- Carte formulaire -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('projects.create') }}" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <!-- Titre -->
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label fw-semibold") }}
+                        {{ form.title(
+                            class="form-control" ~ (" is-invalid" if form.title.errors else ""),
+                            placeholder="Ex : Développement d'une application de gestion de notes",
+                            autofocus=true
+                        ) }}
+                        {% for error in form.title.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text text-muted">
+                            Soyez précis et explicite pour attirer les bons étudiants.
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label fw-semibold") }}
+                        {{ form.description(
+                            class="form-control" ~ (" is-invalid" if form.description.errors else ""),
+                            placeholder="Décrivez les objectifs, les technologies attendues, les livrables...",
+                            rows=6,
+                            id="descriptionField"
+                        ) }}
+                        {% for error in form.description.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <div class="d-flex justify-content-between mt-1">
+                            <span class="form-text text-muted">Minimum 50 caractères recommandés.</span>
+                            <span class="form-text text-muted" id="charCount">0 caractère(s)</span>
+                        </div>
+                    </div>
+
+                    <!-- Domaine + Nombre max étudiants -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            {{ form.domain.label(class="form-label fw-semibold") }}
+                            {{ form.domain(
+                                class="form-control" ~ (" is-invalid" if form.domain.errors else ""),
+                                placeholder="Ex : Intelligence Artificielle, Web, Réseau..."
+                            ) }}
+                            {% for error in form.domain.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-5">
+                            {{ form.max_students.label(class="form-label fw-semibold") }}
+                            {{ form.max_students(
+                                class="form-control" ~ (" is-invalid" if form.max_students.errors else ""),
+                                min=1,
+                                max=10
+                            ) }}
+                            {% for error in form.max_students.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text text-muted">Entre 1 et 10 étudiants.</div>
+                        </div>
+                    </div>
+
+                    <!-- Statut -->
+                    <div class="mb-4">
+                        {{ form.status.label(class="form-label fw-semibold") }}
+                        <div class="row g-2">
+
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="status"
+                                       id="status_open" value="open"
+                                       {% if form.status.data == 'open' or not form.status.data %}checked{% endif %}>
+                                <label class="btn btn-outline-success w-100 py-2" for="status_open">
+                                    <i class="bi bi-unlock d-block mb-1"></i>
+                                    <span class="small fw-semibold">Ouvert</span>
+                                </label>
+                            </div>
+
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="status"
+                                       id="status_closed" value="closed"
+                                       {% if form.status.data == 'closed' %}checked{% endif %}>
+                                <label class="btn btn-outline-secondary w-100 py-2" for="status_closed">
+                                    <i class="bi bi-lock d-block mb-1"></i>
+                                    <span class="small fw-semibold">Fermé</span>
+                                </label>
+                            </div>
+
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="status"
+                                       id="status_completed" value="completed"
+                                       {% if form.status.data == 'completed' %}checked{% endif %}>
+                                <label class="btn btn-outline-primary w-100 py-2" for="status_completed">
+                                    <i class="bi bi-check-circle d-block mb-1"></i>
+                                    <span class="small fw-semibold">Terminé</span>
+                                </label>
+                            </div>
+
+                        </div>
+                        {% for error in form.status.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                        <a href="{{ url_for('projects.list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-send me-2"></i>Publier le projet
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- Conseils -->
+        <div class="card border-0 bg-light mt-3">
+            <div class="card-body p-3">
+                <h6 class="fw-bold mb-2">
+                    <i class="bi bi-lightbulb text-warning me-2"></i>Conseils pour un bon sujet
+                </h6>
+                <ul class="text-muted small mb-0">
+                    <li>Décrivez clairement les objectifs et les livrables attendus.</li>
+                    <li>Précisez les compétences ou technologies requises.</li>
+                    <li>Indiquez la durée estimée du projet.</li>
+                    <li>Mettez le statut sur <strong>Ouvert</strong> pour recevoir des candidatures.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // Compteur de caractères pour la description
+    const descField  = document.getElementById('descriptionField');
+    const charCount  = document.getElementById('charCount');
+
+    function updateCount() {
+        const len = descField.value.length;
+        charCount.textContent = len + ' caractère' + (len > 1 ? 's' : '');
+        charCount.className = 'form-text ' + (len < 50 ? 'text-danger' : 'text-success');
+    }
+
+    descField.addEventListener('input', updateCount);
+    updateCount(); // initialisation
+</script>
+{% endblock %}

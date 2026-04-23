@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ===== FIL D'ARIANE ===== -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('dashboard.index') }}" class="text-decoration-none">
+                <i class="bi bi-house me-1"></i>Accueil
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('dashboard.teacher_dashboard') }}" class="text-decoration-none">
+                Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}"
+               class="text-decoration-none">
+                {{ project.title | truncate(30) }}
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Candidatures</li>
+    </ol>
+</nav>
+
+<!-- ===== EN-TÊTE ===== -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">
+            <i class="bi bi-people text-primary me-2"></i>Candidatures reçues
+        </h1>
+        <p class="text-muted mb-0 small">
+            Projet : <strong>{{ project.title }}</strong>
+            &nbsp;·&nbsp;
+            {{ applications | length }} candidature{{ 's' if applications | length > 1 else '' }}
+            &nbsp;·&nbsp;
+            <span class="text-muted">{{ project.applications_count }} / {{ project.max_students }} place(s)</span>
+        </p>
+    </div>
+    <a href="{{ url_for('export.export_applications', project_id=project.id) }}"
+       class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-download me-1"></i>Exporter CSV
+    </a>
+</div>
+
+<!-- ===== FILTRE PAR STATUT ===== -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <form method="GET"
+              action="{{ url_for('applications.project_applications', project_id=project.id) }}"
+              class="d-flex align-items-center gap-3 flex-wrap">
+            <span class="fw-semibold small">
+                <i class="bi bi-funnel me-1"></i>Filtrer :
+            </span>
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="{{ url_for('applications.project_applications', project_id=project.id) }}"
+                   class="btn {{ 'btn-primary' if not status_filter else 'btn-outline-primary' }}">
+                    Toutes
+                    <span class="badge bg-white text-primary ms-1">{{ applications | length }}</span>
+                </a>
+                <a href="{{ url_for('applications.project_applications', project_id=project.id, status='pending') }}"
+                   class="btn {{ 'btn-warning' if status_filter == 'pending' else 'btn-outline-warning' }}">
+                    En attente
+                    <span class="badge bg-white text-warning ms-1">
+                        {{ applications | selectattr('status', 'equalto', 'pending') | list | length }}
+                    </span>
+                </a>
+                <a href="{{ url_for('applications.project_applications', project_id=project.id, status='accepted') }}"
+                   class="btn {{ 'btn-success' if status_filter == 'accepted' else 'btn-outline-success' }}">
+                    Acceptées
+                    <span class="badge bg-white text-success ms-1">
+                        {{ applications | selectattr('status', 'equalto', 'accepted') | list | length }}
+                    </span>
+                </a>
+                <a href="{{ url_for('applications.project_applications', project_id=project.id, status='rejected') }}"
+                   class="btn {{ 'btn-danger' if status_filter == 'rejected' else 'btn-outline-danger' }}">
+                    Refusées
+                    <span class="badge bg-white text-danger ms-1">
+                        {{ applications | selectattr('status', 'equalto', 'rejected') | list | length }}
+                    </span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== LISTE DES CANDIDATURES ===== -->
+{% if applications %}
+<div class="d-flex flex-column gap-3 mb-4">
+    {% for app in applications %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="row align-items-start">
+
+                <!-- Infos étudiant -->
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center mb-2">
+                        <!-- Avatar initiales -->
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                                    justify-content-center me-3 flex-shrink-0"
+                             style="width:42px; height:42px; font-size:1rem; font-weight:700;">
+                            {{ app.student.first_name[0] | upper }}{{ app.student.last_name[0] | upper }}
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">{{ app.student.full_name }}</h6>
+                            <span class="text-muted small">
+                                <i class="bi bi-envelope me-1"></i>{{ app.student.email }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Motivation -->
+                    <div class="bg-light rounded p-3 mt-2">
+                        <p class="text-muted small mb-0 fst-italic" id="motiv-short-{{ app.id }}">
+                            {{ app.motivation | truncate(180) }}
+                        </p>
+                        {% if app.motivation | length > 180 %}
+                        <p class="text-muted small mb-0 fst-italic d-none" id="motiv-full-{{ app.id }}">
+                            {{ app.motivation }}
+                        </p>
+                        <button class="btn btn-link btn-sm p-0 mt-1 text-primary"
+                                onclick="toggleMotiv({{ app.id }})">
+                            <span id="motiv-toggle-{{ app.id }}">Lire plus</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Statut + actions -->
+                <div class="col-md-5 mt-3 mt-md-0">
+                    <div class="d-flex flex-column align-items-md-end gap-2">
+
+                        <!-- Statut actuel -->
+                        <span class="badge fs-6
+                            {% if app.status == 'pending' %}bg-warning text-dark
+                            {% elif app.status == 'accepted' %}bg-success
+                            {% else %}bg-danger{% endif %}">
+                            {% if app.status == 'pending' %}
+                                <i class="bi bi-clock me-1"></i>En attente
+                            {% elif app.status == 'accepted' %}
+                                <i class="bi bi-check-circle me-1"></i>Acceptée
+                            {% else %}
+                                <i class="bi bi-x-circle me-1"></i>Refusée
+                            {% endif %}
+                        </span>
+
+                        <!-- Date + CV -->
+                        <div class="text-muted small text-md-end">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{ app.applied_at.strftime('%d/%m/%Y à %H:%M') }}
+                        </div>
+
+                        {% if app.cv_file %}
+                        <a href="{{ url_for('static', filename='uploads/cvs/' ~ app.cv_file) }}"
+                           target="_blank" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Voir le CV
+                        </a>
+                        {% else %}
+                        <span class="text-muted small">
+                            <i class="bi bi-file-earmark-x me-1"></i>Pas de CV
+                        </span>
+                        {% endif %}
+
+                        <!-- Boutons accepter / refuser (seulement si en attente) -->
+                        {% if app.status == 'pending' %}
+                        <div class="d-flex gap-2 mt-1">
+                            <form method="POST"
+                                  action="{{ url_for('applications.accept', app_id=app.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="bi bi-check-lg me-1"></i>Accepter
+                                </button>
+                            </form>
+                            <form method="POST"
+                                  action="{{ url_for('applications.reject', app_id=app.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-x-lg me-1"></i>Refuser
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- ===== AUCUNE CANDIDATURE ===== -->
+<div class="text-center py-5">
+    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+    <h4 class="fw-bold mt-3 text-muted">Aucune candidature</h4>
+    {% if status_filter %}
+    <p class="text-muted">Aucune candidature avec ce statut.</p>
+    <a href="{{ url_for('applications.project_applications', project_id=project.id) }}"
+       class="btn btn-outline-primary mt-2">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Voir toutes les candidatures
+    </a>
+    {% else %}
+    <p class="text-muted">Aucun étudiant n'a encore postulé à ce projet.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Retour -->
+<a href="{{ url_for('projects.detail', project_id=project.id) }}"
+   class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Retour au projet
+</a>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    function toggleMotiv(appId) {
+        const short  = document.getElementById('motiv-short-' + appId);
+        const full   = document.getElementById('motiv-full-'  + appId);
+        const toggle = document.getElementById('motiv-toggle-' + appId);
+
+        if (full.classList.contains('d-none')) {
+            short.classList.add('d-none');
+            full.classList.remove('d-none');
+            toggle.textContent = 'Lire moins';
+        } else {
+            full.classList.add('d-none');
+            short.classList.remove('d-none');
+            toggle.textContent = 'Lire plus';
+        }
+    }
+</script>
+{% endblock %}

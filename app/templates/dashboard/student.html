@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ===== EN-TÊTE ===== -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">
+            <i class="bi bi-speedometer2 text-primary me-2"></i>Mon tableau de bord
+        </h1>
+        <p class="text-muted mb-0 small">
+            Bienvenue, <strong>{{ current_user.full_name }}</strong> 👋
+            &nbsp;·&nbsp;
+            <span class="badge bg-success">Étudiant</span>
+        </p>
+    </div>
+    <a href="{{ url_for('projects.list') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-folder2-open me-1"></i>Explorer les projets
+    </a>
+</div>
+
+<!-- ===== STATISTIQUES ===== -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-send text-primary mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-primary mb-0">{{ stats.total_applications }}</h3>
+                <p class="text-muted small mb-0">Candidature(s) envoyée(s)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-clock text-warning mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-warning mb-0">{{ stats.pending_applications }}</h3>
+                <p class="text-muted small mb-0">En attente</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-check-circle text-success mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-success mb-0">{{ stats.accepted_applications }}</h3>
+                <p class="text-muted small mb-0">Acceptée(s)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-folder2-open text-info mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-info mb-0">{{ stats.open_projects }}</h3>
+                <p class="text-muted small mb-0">Projets ouverts</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4">
+
+    <!-- ===== CANDIDATURES RÉCENTES ===== -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Candidatures récentes
+                </h5>
+                <a href="{{ url_for('applications.my_applications') }}"
+                   class="btn btn-link btn-sm text-decoration-none p-0">
+                    Voir tout <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+
+                {% if recent_applications %}
+                <ul class="list-group list-group-flush">
+                    {% for app in recent_applications %}
+                    <li class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 me-2">
+                                <p class="fw-semibold mb-1 small">
+                                    <a href="{{ url_for('projects.detail', project_id=app.project.id) }}"
+                                       class="text-decoration-none text-dark">
+                                        {{ app.project.title | truncate(45) }}
+                                    </a>
+                                </p>
+                                <p class="text-muted mb-0" style="font-size:0.75rem;">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    {{ app.applied_at.strftime('%d/%m/%Y') }}
+                                    {% if app.project.domain %}
+                                    &nbsp;·&nbsp;
+                                    <i class="bi bi-tag me-1"></i>{{ app.project.domain }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <span class="badge flex-shrink-0
+                                {% if app.status == 'pending' %}bg-warning text-dark
+                                {% elif app.status == 'accepted' %}bg-success
+                                {% else %}bg-danger{% endif %}">
+                                {% if app.status == 'pending' %}
+                                    <i class="bi bi-clock me-1"></i>Attente
+                                {% elif app.status == 'accepted' %}
+                                    <i class="bi bi-check me-1"></i>Acceptée
+                                {% else %}
+                                    <i class="bi bi-x me-1"></i>Refusée
+                                {% endif %}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox text-muted" style="font-size:2.5rem;"></i>
+                    <p class="text-muted mt-2 small">Aucune candidature pour le moment.</p>
+                    <a href="{{ url_for('projects.list') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-folder2-open me-1"></i>Parcourir les projets
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PROJETS OUVERTS ===== -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-unlock text-success me-2"></i>Projets disponibles
+                </h5>
+                <a href="{{ url_for('projects.list', status='open') }}"
+                   class="btn btn-link btn-sm text-decoration-none p-0">
+                    Voir tout <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+
+                {% if open_projects %}
+                <ul class="list-group list-group-flush">
+                    {% for project in open_projects %}
+                    <li class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 me-2">
+                                <p class="fw-semibold mb-1 small">
+                                    <a href="{{ url_for('projects.detail', project_id=project.id) }}"
+                                       class="text-decoration-none text-dark">
+                                        {{ project.title | truncate(45) }}
+                                    </a>
+                                </p>
+                                <p class="text-muted mb-0" style="font-size:0.75rem;">
+                                    <i class="bi bi-person me-1"></i>{{ project.teacher.full_name }}
+                                    &nbsp;·&nbsp;
+                                    <i class="bi bi-people me-1"></i>
+                                    {{ project.applications_count }}/{{ project.max_students }} place(s)
+                                    {% if project.domain %}
+                                    &nbsp;·&nbsp;
+                                    <i class="bi bi-tag me-1"></i>{{ project.domain }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <a href="{{ url_for('applications.apply', project_id=project.id) }}"
+                               class="btn btn-outline-primary btn-sm flex-shrink-0">
+                                <i class="bi bi-send me-1"></i>Postuler
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-folder-x text-muted" style="font-size:2.5rem;"></i>
+                    <p class="text-muted mt-2 small">Aucun projet ouvert pour le moment.</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== CONSEIL / ALERTE SI AUCUNE CANDIDATURE ===== -->
+{% if stats.total_applications == 0 %}
+<div class="alert alert-info border-0 shadow-sm mt-4 d-flex align-items-center gap-3">
+    <i class="bi bi-lightbulb-fill text-warning fs-4 flex-shrink-0"></i>
+    <div>
+        <strong>Démarrez maintenant !</strong>
+        Parcourez les projets disponibles et envoyez votre première candidature.
+        <a href="{{ url_for('projects.list') }}" class="alert-link ms-1">
+            Voir les projets <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

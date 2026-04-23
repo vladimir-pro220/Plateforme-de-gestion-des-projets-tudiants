@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ===== EN-TÊTE ===== -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">
+            <i class="bi bi-shield-check text-danger me-2"></i>Administration
+        </h1>
+        <p class="text-muted mb-0 small">
+            Bienvenue, <strong>{{ current_user.full_name }}</strong> 👋
+            &nbsp;·&nbsp;
+            <span class="badge bg-danger">Administrateur</span>
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-people me-1"></i>Utilisateurs
+        </a>
+        <a href="{{ url_for('admin.stats') }}" class="btn btn-danger btn-sm">
+            <i class="bi bi-bar-chart me-1"></i>Statistiques
+        </a>
+    </div>
+</div>
+
+<!-- ===== STATISTIQUES GLOBALES ===== -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-people text-primary mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-primary mb-0">{{ stats.total_users }}</h3>
+                <p class="text-muted small mb-0">Utilisateurs</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-folder2-open text-success mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-success mb-0">{{ stats.total_projects }}</h3>
+                <p class="text-muted small mb-0">Projets</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-file-earmark-text text-info mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-info mb-0">{{ stats.total_applications }}</h3>
+                <p class="text-muted small mb-0">Candidatures</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-unlock text-warning mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-warning mb-0">{{ stats.open_projects }}</h3>
+                <p class="text-muted small mb-0">Projets ouverts</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== DEUXIÈME LIGNE STATS ===== -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 bg-success bg-opacity-10 text-center py-3">
+            <h4 class="fw-bold text-success mb-0">{{ stats.total_students }}</h4>
+            <small class="text-muted">Étudiants</small>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 bg-warning bg-opacity-10 text-center py-3">
+            <h4 class="fw-bold text-warning mb-0">{{ stats.total_teachers }}</h4>
+            <small class="text-muted">Enseignants</small>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 bg-info bg-opacity-10 text-center py-3">
+            <h4 class="fw-bold text-info mb-0">{{ stats.accepted_applications }}</h4>
+            <small class="text-muted">Candidatures acceptées</small>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 bg-danger bg-opacity-10 text-center py-3">
+            <h4 class="fw-bold text-danger mb-0">{{ stats.pending_applications }}</h4>
+            <small class="text-muted">Candidatures en attente</small>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== ACCÈS RAPIDES ===== -->
+<div class="row g-4 mb-4">
+
+    <!-- Gestion utilisateurs -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4 text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex
+                            align-items-center justify-content-center mb-3"
+                     style="width:64px; height:64px;">
+                    <i class="bi bi-people-fill text-primary" style="font-size:1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Gestion des utilisateurs</h5>
+                <p class="text-muted small mb-3">
+                    Consultez, activez, désactivez ou supprimez les comptes utilisateurs.
+                </p>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-arrow-right me-1"></i>Gérer les utilisateurs
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques détaillées -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4 text-center">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex
+                            align-items-center justify-content-center mb-3"
+                     style="width:64px; height:64px;">
+                    <i class="bi bi-bar-chart-fill text-success" style="font-size:1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Statistiques globales</h5>
+                <p class="text-muted small mb-3">
+                    Visualisez les données par domaine, statut et évolution de la plateforme.
+                </p>
+                <a href="{{ url_for('admin.stats') }}" class="btn btn-success w-100">
+                    <i class="bi bi-arrow-right me-1"></i>Voir les statistiques
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export données -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4 text-center">
+                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex
+                            align-items-center justify-content-center mb-3"
+                     style="width:64px; height:64px;">
+                    <i class="bi bi-download text-warning" style="font-size:1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Export des données</h5>
+                <p class="text-muted small mb-3">
+                    Téléchargez l'ensemble des projets de la plateforme au format CSV.
+                </p>
+                <a href="{{ url_for('export.export_projects') }}" class="btn btn-warning w-100">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exporter les projets
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== TAUX D'ACCEPTATION ===== -->
+{% if stats.total_applications > 0 %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 pt-3 pb-0">
+        <h5 class="fw-bold mb-0">
+            <i class="bi bi-graph-up text-primary me-2"></i>Vue d'ensemble des candidatures
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+
+            <!-- Barre en attente -->
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted fw-semibold">En attente</span>
+                    <span class="fw-bold text-warning">
+                        {% set pct_pending = (stats.pending_applications / stats.total_applications * 100) | int %}
+                        {{ pct_pending }}%
+                    </span>
+                </div>
+                <div class="progress" style="height:8px;">
+                    <div class="progress-bar bg-warning" style="width:{{ pct_pending }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Barre acceptées -->
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted fw-semibold">Acceptées</span>
+                    <span class="fw-bold text-success">
+                        {% set pct_accepted = (stats.accepted_applications / stats.total_applications * 100) | int %}
+                        {{ pct_accepted }}%
+                    </span>
+                </div>
+                <div class="progress" style="height:8px;">
+                    <div class="progress-bar bg-success" style="width:{{ pct_accepted }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Barre refusées -->
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted fw-semibold">Refusées</span>
+                    <span class="fw-bold text-danger">
+                        {% set pct_rejected = (stats.rejected_applications / stats.total_applications * 100) | int %}
+                        {{ pct_rejected }}%
+                    </span>
+                </div>
+                <div class="progress" style="height:8px;">
+                    <div class="progress-bar bg-danger" style="width:{{ pct_rejected }}%;"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

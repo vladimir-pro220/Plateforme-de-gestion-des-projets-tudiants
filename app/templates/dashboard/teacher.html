@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ===== EN-TÊTE ===== -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">
+            <i class="bi bi-speedometer2 text-warning me-2"></i>Mon tableau de bord
+        </h1>
+        <p class="text-muted mb-0 small">
+            Bienvenue, <strong>{{ current_user.full_name }}</strong> 👋
+            &nbsp;·&nbsp;
+            <span class="badge bg-warning text-dark">Enseignant</span>
+        </p>
+    </div>
+    <a href="{{ url_for('projects.create') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Nouveau projet
+    </a>
+</div>
+
+<!-- ===== STATISTIQUES ===== -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-folder2-open text-primary mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-primary mb-0">{{ stats.total_projects }}</h3>
+                <p class="text-muted small mb-0">Projet(s) créé(s)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-unlock text-success mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-success mb-0">{{ stats.open_projects }}</h3>
+                <p class="text-muted small mb-0">Projet(s) ouvert(s)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-people text-info mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-info mb-0">{{ stats.total_applications }}</h3>
+                <p class="text-muted small mb-0">Candidature(s) reçue(s)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-4">
+                <i class="bi bi-clock text-warning mb-2" style="font-size:2rem;"></i>
+                <h3 class="fw-bold text-warning mb-0">{{ stats.pending_applications }}</h3>
+                <p class="text-muted small mb-0">En attente de décision</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4">
+
+    <!-- ===== MES PROJETS ===== -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-folder2-open text-primary me-2"></i>Mes projets
+                </h5>
+                <a href="{{ url_for('projects.create') }}"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-plus me-1"></i>Nouveau
+                </a>
+            </div>
+            <div class="card-body p-0">
+
+                {% if my_projects %}
+                <ul class="list-group list-group-flush">
+                    {% for project in my_projects %}
+                    <li class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 me-3">
+
+                                <!-- Titre + badges -->
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <a href="{{ url_for('projects.detail', project_id=project.id) }}"
+                                       class="fw-semibold text-decoration-none text-dark small">
+                                        {{ project.title | truncate(40) }}
+                                    </a>
+                                    <span class="badge
+                                        {% if project.status == 'open' %}bg-success
+                                        {% elif project.status == 'closed' %}bg-secondary
+                                        {% else %}bg-primary{% endif %}" style="font-size:0.65rem;">
+                                        {% if project.status == 'open' %}Ouvert
+                                        {% elif project.status == 'closed' %}Fermé
+                                        {% else %}Terminé{% endif %}
+                                    </span>
+                                </div>
+
+                                <!-- Méta -->
+                                <p class="text-muted mb-0" style="font-size:0.75rem;">
+                                    <i class="bi bi-people me-1"></i>
+                                    {{ project.applications_count }} / {{ project.max_students }} candidature(s)
+                                    &nbsp;·&nbsp;
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    {{ project.created_at.strftime('%d/%m/%Y') }}
+                                    {% if project.domain %}
+                                    &nbsp;·&nbsp;
+                                    <i class="bi bi-tag me-1"></i>{{ project.domain }}
+                                    {% endif %}
+                                </p>
+
+                            </div>
+
+                            <!-- Actions rapides -->
+                            <div class="d-flex gap-1 flex-shrink-0">
+                                <a href="{{ url_for('projects.edit', project_id=project.id) }}"
+                                   class="btn btn-outline-warning btn-sm" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('applications.project_applications', project_id=project.id) }}"
+                                   class="btn btn-outline-primary btn-sm" title="Voir les candidatures">
+                                    <i class="bi bi-people"></i>
+                                    {% if project.applications_count > 0 %}
+                                    <span class="badge bg-primary ms-1" style="font-size:0.65rem;">
+                                        {{ project.applications_count }}
+                                    </span>
+                                    {% endif %}
+                                </a>
+                            </div>
+
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-folder-x text-muted" style="font-size:2.5rem;"></i>
+                    <p class="text-muted mt-2 small">Vous n'avez encore créé aucun projet.</p>
+                    <a href="{{ url_for('projects.create') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Créer mon premier projet
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CANDIDATURES EN ATTENTE ===== -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-clock text-warning me-2"></i>En attente de décision
+                </h5>
+                {% if stats.pending_applications > 0 %}
+                <span class="badge bg-warning text-dark">
+                    {{ stats.pending_applications }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+
+                {% if pending_applications %}
+                <ul class="list-group list-group-flush">
+                    {% for app in pending_applications %}
+                    <li class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 me-2">
+
+                                <!-- Avatar + nom étudiant -->
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <div class="rounded-circle bg-primary text-white d-flex
+                                                align-items-center justify-content-center flex-shrink-0"
+                                         style="width:30px; height:30px; font-size:0.75rem; font-weight:700;">
+                                        {{ app.student.first_name[0] | upper }}{{ app.student.last_name[0] | upper }}
+                                    </div>
+                                    <span class="fw-semibold small">{{ app.student.full_name }}</span>
+                                </div>
+
+                                <!-- Projet concerné -->
+                                <p class="text-muted mb-1" style="font-size:0.75rem;">
+                                    <i class="bi bi-folder2-open me-1"></i>
+                                    {{ app.project.title | truncate(35) }}
+                                </p>
+
+                                <p class="text-muted mb-0" style="font-size:0.75rem;">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    {{ app.applied_at.strftime('%d/%m/%Y') }}
+                                </p>
+
+                            </div>
+
+                            <!-- Boutons accepter / refuser -->
+                            <div class="d-flex flex-column gap-1 flex-shrink-0">
+                                <form method="POST"
+                                      action="{{ url_for('applications.accept', app_id=app.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-success btn-sm w-100"
+                                            title="Accepter">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                                <form method="POST"
+                                      action="{{ url_for('applications.reject', app_id=app.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm w-100"
+                                            title="Refuser">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-check-circle text-success" style="font-size:2.5rem;"></i>
+                    <p class="text-muted mt-2 small">
+                        Aucune candidature en attente.<br>Vous êtes à jour !
+                    </p>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== EXPORT CSV ===== -->
+{% if my_projects %}
+<div class="card border-0 bg-light mt-4">
+    <div class="card-body p-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-1">
+                <i class="bi bi-download text-secondary me-2"></i>Exporter mes données
+            </h6>
+            <p class="text-muted small mb-0">
+                Téléchargez la liste de vos projets au format CSV.
+            </p>
+        </div>
+        <a href="{{ url_for('export.export_projects') }}"
+           class="btn btn-outline-secondary btn-sm ms-3">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

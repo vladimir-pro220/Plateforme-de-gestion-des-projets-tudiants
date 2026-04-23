@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ===== FIL D'ARIANE ===== -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('dashboard.index') }}" class="text-decoration-none">
+                <i class="bi bi-house me-1"></i>Accueil
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('projects.list') }}" class="text-decoration-none">Projets</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ project.title | truncate(40) }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+
+    <!-- ===== COLONNE PRINCIPALE ===== -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <!-- Badges statut + domaine -->
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge fs-6
+                        {% if project.status == 'open' %}bg-success
+                        {% elif project.status == 'closed' %}bg-secondary
+                        {% else %}bg-primary{% endif %}">
+                        {% if project.status == 'open' %}
+                            <i class="bi bi-unlock me-1"></i>Ouvert
+                        {% elif project.status == 'closed' %}
+                            <i class="bi bi-lock me-1"></i>Fermé
+                        {% else %}
+                            <i class="bi bi-check-circle me-1"></i>Terminé
+                        {% endif %}
+                    </span>
+                    {% if project.domain %}
+                    <span class="badge bg-light text-dark border fs-6">
+                        <i class="bi bi-tag me-1"></i>{{ project.domain }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Titre -->
+                <h1 class="h3 fw-bold mb-3">{{ project.title }}</h1>
+
+                <!-- Description complète -->
+                <h6 class="fw-bold text-muted text-uppercase small mb-2 mt-4">
+                    <i class="bi bi-file-text me-1"></i>Description
+                </h6>
+                <div class="text-muted lh-lg">
+                    {{ project.description | nl2br }}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== COLONNE LATÉRALE ===== -->
+    <div class="col-lg-4">
+
+        <!-- Carte infos projet -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-primary text-white fw-bold">
+                <i class="bi bi-info-circle me-2"></i>Informations
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-semibold">
+                            <i class="bi bi-person me-2"></i>Enseignant
+                        </span>
+                        <span class="fw-semibold text-end">{{ project.teacher.full_name }}</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-semibold">
+                            <i class="bi bi-people me-2"></i>Places
+                        </span>
+                        <span>
+                            <span class="fw-bold text-{{ 'danger' if project.is_full else 'success' }}">
+                                {{ project.applications_count }}
+                            </span>
+                            <span class="text-muted">/ {{ project.max_students }}</span>
+                        </span>
+                    </li>
+
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted small fw-semibold">Remplissage</span>
+                            {% set pct = [(project.applications_count / project.max_students * 100) if project.max_students > 0 else 0, 100] | min | int %}
+                            <span class="small fw-bold text-{{ 'danger' if pct >= 100 else 'warning' if pct >= 60 else 'success' }}">
+                                {{ pct }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-{{ 'danger' if pct >= 100 else 'warning' if pct >= 60 else 'success' }}"
+                                 role="progressbar" style="width: {{ pct }}%;"></div>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-semibold">
+                            <i class="bi bi-calendar3 me-2"></i>Publié le
+                        </span>
+                        <span class="small">{{ project.created_at.strftime('%d/%m/%Y') }}</span>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
+        <!-- ===== ACTIONS SELON RÔLE ===== -->
+
+        <!-- ÉTUDIANT : postuler -->
+        {% if current_user.is_authenticated and current_user.is_student %}
+
+            {% if user_application %}
+                <!-- Déjà candidat -->
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-check-circle-fill text-success mb-2" style="font-size:2rem;"></i>
+                        <p class="fw-bold mb-1">Candidature envoyée</p>
+                        <p class="text-muted small mb-2">
+                            Statut :
+                            <span class="badge
+                                {% if user_application.status == 'pending' %}bg-warning text-dark
+                                {% elif user_application.status == 'accepted' %}bg-success
+                                {% else %}bg-danger{% endif %}">
+                                {% if user_application.status == 'pending' %}En attente
+                                {% elif user_application.status == 'accepted' %}Acceptée
+                                {% else %}Refusée{% endif %}
+                            </span>
+                        </p>
+                        <small class="text-muted">
+                            Postulé le {{ user_application.applied_at.strftime('%d/%m/%Y') }}
+                        </small>
+                    </div>
+                </div>
+
+            {% elif project.is_open and not project.is_full %}
+                <!-- Peut postuler -->
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-send text-primary mb-2" style="font-size:2rem;"></i>
+                        <p class="fw-bold mb-3">Ce projet vous intéresse ?</p>
+                        <a href="{{ url_for('applications.apply', project_id=project.id) }}"
+                           class="btn btn-primary w-100">
+                            <i class="bi bi-send me-2"></i>Postuler maintenant
+                        </a>
+                    </div>
+                </div>
+
+            {% elif project.is_full %}
+                <div class="alert alert-warning border-0 shadow-sm text-center">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Ce projet est complet.
+                </div>
+
+            {% else %}
+                <div class="alert alert-secondary border-0 shadow-sm text-center">
+                    <i class="bi bi-lock me-2"></i>
+                    Ce projet n'accepte plus de candidatures.
+                </div>
+            {% endif %}
+
+        <!-- ENSEIGNANT : gérer son projet -->
+        {% elif current_user.is_authenticated and current_user.is_teacher and project.teacher_id == current_user.id %}
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-warning text-dark fw-bold">
+                <i class="bi bi-gear me-2"></i>Gérer le projet
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="{{ url_for('projects.edit', project_id=project.id) }}"
+                   class="btn btn-outline-warning">
+                    <i class="bi bi-pencil me-2"></i>Modifier
+                </a>
+                <a href="{{ url_for('applications.project_applications', project_id=project.id) }}"
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-people me-2"></i>
+                    Voir les candidatures
+                    {% if project.applications_count > 0 %}
+                    <span class="badge bg-primary ms-1">{{ project.applications_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('export.export_applications', project_id=project.id) }}"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-download me-2"></i>Exporter CSV
+                </a>
+                <!-- Supprimer -->
+                <button type="button" class="btn btn-outline-danger"
+                        data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="bi bi-trash me-2"></i>Supprimer
+                </button>
+            </div>
+        </div>
+
+        <!-- Non connecté -->
+        {% elif not current_user.is_authenticated %}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-person-lock text-muted mb-2" style="font-size:2rem;"></i>
+                <p class="text-muted mb-3">Connectez-vous pour postuler à ce projet.</p>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Retour à la liste -->
+        <a href="{{ url_for('projects.list') }}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-arrow-left me-2"></i>Retour aux projets
+        </a>
+
+    </div>
+</div>
+
+
+<!-- ===== MODAL CONFIRMATION SUPPRESSION ===== -->
+{% if current_user.is_authenticated and current_user.is_teacher and project.teacher_id == current_user.id %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer le projet
+                <strong>« {{ project.title }} »</strong> ?
+                <br>
+                <span class="text-danger small">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    Cette action est irréversible. Toutes les candidatures associées seront supprimées.
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Annuler
+                </button>
+                <form method="POST"
+                      action="{{ url_for('projects.delete', project_id=project.id) }}">
+                    {{ csrf_token() if csrf_token is defined }}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

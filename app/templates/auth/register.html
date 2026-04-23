@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Inscription{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card">
+                    <div class="auth-header text-center mb-4">
+                        <div class="auth-icon mb-3">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <h2 class="auth-title">Créer un compte</h2>
+                        <p class="text-muted">Rejoignez la plateforme UniProjects</p>
+                    </div>
+
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="row g-3">
+                            <!-- Prénom -->
+                            <div class="col-6">
+                                {{ form.first_name.label(class="form-label fw-medium") }}
+                                {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""),
+                                   placeholder="Prénom") }}
+                                {% for error in form.first_name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Nom -->
+                            <div class="col-6">
+                                {{ form.last_name.label(class="form-label fw-medium") }}
+                                {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""),
+                                   placeholder="Nom") }}
+                                {% for error in form.last_name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-12">
+                                {{ form.email.label(class="form-label fw-medium") }}
+                                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                                   placeholder="votre@email.com", autocomplete="email") }}
+                                {% for error in form.email.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Rôle -->
+                            <div class="col-12">
+                                {{ form.role.label(class="form-label fw-medium") }}
+                                {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
+                                {% for error in form.role.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Mot de passe -->
+                            <div class="col-12">
+                                {{ form.password.label(class="form-label fw-medium") }}
+                                <div class="input-group">
+                                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                                       placeholder="Minimum 6 caractères", id="passwordInput",
+                                       autocomplete="new-password") }}
+                                    <button class="btn btn-outline-secondary" type="button"
+                                            onclick="togglePassword('passwordInput', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    {% for error in form.password.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Confirmation mot de passe -->
+                            <div class="col-12">
+                                {{ form.confirm_password.label(class="form-label fw-medium") }}
+                                <div class="input-group">
+                                    {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""),
+                                       placeholder="Répétez le mot de passe", id="confirmPasswordInput",
+                                       autocomplete="new-password") }}
+                                    <button class="btn btn-outline-secondary" type="button"
+                                            onclick="togglePassword('confirmPasswordInput', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    {% for error in form.confirm_password.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="col-12 mt-2">
+                                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                    <i class="bi bi-person-check me-2"></i>Créer mon compte
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+                    <p class="text-center text-muted mb-0">
+                        Déjà inscrit ?
+                        <a href="{{ url_for('auth.login') }}" class="fw-medium">Se connecter</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
+{% endblock %}
